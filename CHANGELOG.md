@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `KeyCode` and `HotkeyCombination` types in `vtx-common`
 - `HistoryEntry` type in `vtx-common`
 - `TranscriptionResult.id` and `TranscriptionResult.timestamp` optional fields
+- `EngineBuilder::language()` — set the transcription language (e.g. `"zh"`, `"ja"`).
+  When set, Whisper skips language detection and forces the specified language.
+- `TranscriptionQueue::start_worker_with_language()` — queue-level passthrough
+  for the language hint.
+- `Transcriber::set_language()` — set the language on the low-level transcriber.
 
 ### Changed
 - **BREAKING**: `AudioEngine::new()` now returns `(AudioEngine, broadcast::Receiver<EngineEvent>)` instead of taking an `EventHandler`

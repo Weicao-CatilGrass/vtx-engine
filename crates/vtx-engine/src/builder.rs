@@ -56,6 +56,7 @@ pub struct EngineBuilder {
     vad_enabled: bool,
     audio_streaming_enabled: bool,
     raw_audio_streaming_enabled: bool,
+    language: Option<String>,
 }
 
 impl EngineBuilder {
@@ -69,6 +70,7 @@ impl EngineBuilder {
             vad_enabled: true,
             audio_streaming_enabled: false,
             raw_audio_streaming_enabled: false,
+            language: None,
         }
     }
 
@@ -82,6 +84,7 @@ impl EngineBuilder {
             vad_enabled: true,
             audio_streaming_enabled: false,
             raw_audio_streaming_enabled: false,
+            language: None,
         }
     }
 
@@ -278,6 +281,14 @@ impl EngineBuilder {
         self
     }
 
+    /// Set the transcription language (e.g. "en", "zh", "ja").
+    /// When set, Whisper will skip language detection and use the specified
+    /// language. If not set (default), Whisper auto-detects the language.
+    pub fn language(mut self, language: impl Into<String>) -> Self {
+        self.language = Some(language.into());
+        self
+    }
+
     // -------------------------------------------------------------------------
     // Build
     // -------------------------------------------------------------------------
@@ -317,7 +328,7 @@ impl EngineBuilder {
             let queue = Arc::new(transcription::TranscriptionQueue::new());
             queue.set_callback(Arc::new(callback));
 
-            queue.start_worker(resolved_model_path.clone());
+            queue.start_worker_with_language(resolved_model_path.clone(), self.language.clone());
             Some(queue)
         } else {
             None
