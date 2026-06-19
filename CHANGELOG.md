@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TranscriptionQueue::start_worker_with_language()` — queue-level passthrough
   for the language hint.
 - `Transcriber::set_language()` — set the language on the low-level transcriber.
+- `whisper_ffi::suppress_logs()` / `restore_logs()` — suppress whisper.cpp C library
+  log output (ggml init, model load, etc.) via `whisper_log_set` FFI binding.
+- `whisper_ffi::WHISPER_LOGS_ENABLED` — global flag to re-enable C library logs.
+
+### Fixed
+- `transcription::download_model()` used a hardcoded URL that always downloaded
+  `ggml-base.en.bin`, regardless of the `model_path` argument. The URL is now
+  constructed from the target filename so each model variant downloads the
+  correct file from Hugging Face.
 
 ### Changed
 - **BREAKING**: `AudioEngine::new()` now returns `(AudioEngine, broadcast::Receiver<EngineEvent>)` instead of taking an `EventHandler`
