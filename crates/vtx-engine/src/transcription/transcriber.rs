@@ -94,6 +94,9 @@ impl Transcriber {
 
         self.ensure_library()?;
 
+        // Library is loaded — now we can find whisper_log_set and suppress logs.
+        whisper_ffi::suppress_logs();
+
         if !self.model_path.exists() {
             return Err(format!(
                 "Whisper model not found at: {}\n\n\
