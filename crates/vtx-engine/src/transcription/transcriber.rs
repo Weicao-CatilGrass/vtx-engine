@@ -26,6 +26,7 @@ const MIN_PHRASE_LENGTH: usize = 10;
 pub struct Transcriber {
     ctx: Option<Context>,
     model_path: PathBuf,
+    language: Option<String>,
     library_initialized: bool,
 }
 
@@ -36,6 +37,7 @@ impl Transcriber {
         Self {
             ctx: None,
             model_path,
+            language: None,
             library_initialized: false,
         }
     }
@@ -45,8 +47,15 @@ impl Transcriber {
         Self {
             ctx: None,
             model_path,
+            language: None,
             library_initialized: false,
         }
+    }
+
+    /// Set the expected language (e.g. "en", "zh", "ja").
+    /// When set, language detection is skipped and the specified language is used.
+    pub fn set_language(&mut self, language: Option<String>) {
+        self.language = language;
     }
 
     /// Get the path to the model file.
@@ -109,6 +118,16 @@ impl Transcriber {
 
         // Apply hallucination mitigation settings
         params.configure_with_hallucination_mitigation();
+
+        // Set language if specified — keep the CString alive alongside params
+        let _c_lang = self
+            .language
+            .as_ref()
+            .and_then(|lang| std::ffi::CString::new(lang.as_str()).ok());
+        if let Some(ref c_lang) = _c_lang {
+            params.language = c_lang.as_ptr();
+            params.detect_language = false;
+        }
 
         // Run transcription
         ctx.full(&params, audio_data)?;
