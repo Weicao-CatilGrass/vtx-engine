@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for the language hint.
 - `Transcriber::set_language()` — set the language on the low-level transcriber.
 
+### Fixed
+- `transcription::download_model()` used a hardcoded URL that always downloaded
+  `ggml-base.en.bin`, regardless of the `model_path` argument. The URL is now
+  constructed from the target filename so each model variant downloads the
+  correct file from Hugging Face.
+
 ### Changed
 - **BREAKING**: `AudioEngine::new()` now returns `(AudioEngine, broadcast::Receiver<EngineEvent>)` instead of taking an `EventHandler`
 - **BREAKING**: Removed `EventHandler` trait — use `subscribe()` or `EventHandlerAdapter` instead

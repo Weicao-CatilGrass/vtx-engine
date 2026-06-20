@@ -13,8 +13,17 @@ use std::path::PathBuf;
 
 use super::whisper_ffi::{self, Context, WhisperSamplingStrategy};
 
-const MODEL_URL: &str =
-    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin";
+fn model_url_from_path(model_path: &PathBuf) -> String {
+    let filename = model_path
+        .file_name()
+        .map(|n| n.to_string_lossy())
+        .unwrap_or_else(|| "ggml-base.en.bin".into())
+        .to_string();
+    format!(
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{}",
+        filename
+    )
+}
 
 /// Minimum number of repetitions to consider text as a hallucination loop
 const MIN_REPETITIONS_FOR_LOOP: usize = 3;
@@ -339,9 +348,12 @@ where
 
     tracing::info!("Downloading whisper model to: {}", model_path.display());
 
+    let url = model_url_from_path(model_path);
+    tracing::info!("Downloading from: {}", url);
+
     let client = reqwest::Client::new();
     let response = client
-        .get(MODEL_URL)
+        .get(&url)
         .send()
         .await
         .map_err(|e| format!("Failed to download model: {}", e))?;
