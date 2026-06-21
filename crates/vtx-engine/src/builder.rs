@@ -57,6 +57,7 @@ pub struct EngineBuilder {
     audio_streaming_enabled: bool,
     raw_audio_streaming_enabled: bool,
     language: Option<String>,
+    models_dir: Option<std::path::PathBuf>,
 }
 
 impl EngineBuilder {
@@ -71,6 +72,7 @@ impl EngineBuilder {
             audio_streaming_enabled: false,
             raw_audio_streaming_enabled: false,
             language: None,
+            models_dir: None,
         }
     }
 
@@ -85,6 +87,7 @@ impl EngineBuilder {
             audio_streaming_enabled: false,
             raw_audio_streaming_enabled: false,
             language: None,
+            models_dir: None,
         }
     }
 
@@ -289,6 +292,17 @@ impl EngineBuilder {
         self
     }
 
+    /// Set a custom directory for model files, overriding the platform-default
+    /// app data directory. The model filename is derived from the selected
+    /// [`WhisperModel`]: `{directory}/ggml-{slug}.bin`.
+    ///
+    /// The directory is **not** validated at build time — if it is missing or
+    /// invalid the transcription worker will report an error at runtime.
+    pub fn models_dir(mut self, directory: impl Into<std::path::PathBuf>) -> Self {
+        self.models_dir = Some(directory.into());
+        self
+    }
+
     // -------------------------------------------------------------------------
     // Build
     // -------------------------------------------------------------------------
@@ -306,9 +320,15 @@ impl EngineBuilder {
         let (sender, receiver) = broadcast::channel(BROADCAST_CAPACITY);
         let sender = Arc::new(sender);
 
-        // Resolve the model path: model_path (deprecated) takes precedence, then model enum.
+        // Resolve the model path:
+        // 1. models_dir takes precedence (new API)
+        // 2. model_path (deprecated) falls back
+        // 3. ModelManager resolves from WhisperModel enum
         #[allow(deprecated)]
-        let resolved_model_path = if let Some(ref explicit_path) = self.config.model_path {
+        let resolved_model_path = if let Some(ref dir) = self.models_dir {
+            let slug = self.config.model.slug();
+            dir.join(format!("ggml-{}.bin", slug))
+        } else if let Some(ref explicit_path) = self.config.model_path {
             tracing::warn!(
                 "[EngineBuilder] model_path is deprecated (since 0.2.0). \
                  Use EngineConfig::model instead. Falling back to explicit path: {}",

@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `whisper_ffi::suppress_logs()` / `restore_logs()` — suppress whisper.cpp C library
   log output (ggml init, model load, etc.) via `whisper_log_set` FFI binding.
 - `whisper_ffi::WHISPER_LOGS_ENABLED` — global flag to re-enable C library logs.
+- `EngineBuilder::models_dir()` — set a custom directory for model files,
+  overriding the platform-default app data location.
 
 ### Fixed
 - `transcription::download_model()` used a hardcoded URL that always downloaded
